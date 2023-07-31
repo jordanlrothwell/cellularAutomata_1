@@ -29,6 +29,12 @@ public:
 	// Update all cells
 	void updateAllCells();
 
+	// Scatter entities randomly across the grid
+	void scatterEntities(int entityCount);
+
+	// Move entities
+	void moveEntities();
+
 	// Display grid
 	void displayGrid(RenderWindow& window, int cellSize);
 };

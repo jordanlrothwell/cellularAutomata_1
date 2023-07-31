@@ -6,16 +6,16 @@ using namespace sf;
 
 int main()
 {
-    const float INITIAL_ALIVE_CELL_PERCENTAGE = 0.47f;
+    const float INITIAL_ALIVE_CELL_PERCENTAGE = 0.45f;
 
     const int NUMBER_OF_ITERATIONS = 20; // The number of iterations for each automaton
     const int NUMBER_OF_GRIDS = 10; // The number of different starting grids
 
-    const int CELL_SIZE = 5; // Adjust this value to change the size of the cells
+    const int CELL_SIZE = 10; // Adjust this value to change the size of the cells
 
     // Adjust these values to control the number of rows and columns in the grid
-    const int DESIRED_GRID_ROWS = 200;
-    const int DESIRED_GRID_COLS = 200;
+    const int DESIRED_GRID_ROWS = 128;
+    const int DESIRED_GRID_COLS = 128;
 
     // Retrieve desktop screen mode
     VideoMode desktopMode = VideoMode::getDesktopMode();
@@ -33,6 +33,19 @@ int main()
 
     Automaton automaton(GRID_ROWS, GRID_COLS, INITIAL_ALIVE_CELL_PERCENTAGE);
     RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Cellular Automaton");
+    window.setFramerateLimit(20);
+
+    for (int i = 0; i < 20; i++)
+    {
+        {
+            automaton.checkAllNeighbours();
+            automaton.updateAllCells();
+        }
+    }
+
+    automaton.scatterEntities(2000);
+
+    automaton.displayGrid(window, CELL_SIZE);
 
     while (window.isOpen())
     {
@@ -44,61 +57,15 @@ int main()
             case Event::Closed:
                 window.close();
                 break;
-            case Event::KeyPressed:
-                if (event.key.code == Keyboard::Num1)
-                {
-                    // Run simulations for a range of percentages of initially alive cells
-                    for (float percentage = INITIAL_ALIVE_CELL_PERCENTAGE; percentage <= INITIAL_ALIVE_CELL_PERCENTAGE + 0.1f; percentage += 0.01f)
-                    {
-                        float totalWallPercentage = 0.0f; // Keep track of the total wall percentage
-
-                        // For each grid...
-                        for (int gridNumber = 0; gridNumber < NUMBER_OF_GRIDS; gridNumber++)
-                        {
-                            // Create a new automaton with the specified grid size and percentage of initially alive cells
-                            automaton = Automaton(GRID_ROWS, GRID_COLS, percentage);
-
-                            // Run the automaton for the specified number of iterations
-                            for (int iteration = 0; iteration < NUMBER_OF_ITERATIONS; iteration++)
-                            {
-                                automaton.checkAllNeighbours();
-                                automaton.updateAllCells();
-                            }
-
-                            // Get the wall percentage and add it to the total
-                            float wallPercentage = automaton.currentGrid().getCurrentWallPercentage();
-                            totalWallPercentage += wallPercentage;
-
-                            // Output the wall percentage
-                            std::cout << "Grid #" << (gridNumber + 1)
-                                << ", Initial life percentage: " << percentage * 100
-                                << "%, Current % of walls: " << wallPercentage
-                                << "\n";
-                        }
-
-                        // Calculate and output the average wall percentage
-                        float averageWallPercentage = totalWallPercentage / NUMBER_OF_GRIDS;
-                        std::cout << "Average % of walls for initial life percentage of " << percentage * 100
-                            << "% across all grids: " << averageWallPercentage << "\n";
-                    }
-                }
-                break;
-            case Event::MouseButtonPressed:
-                if (event.mouseButton.button == Mouse::Left)
-                {
-                    automaton.checkAllNeighbours();
-                    automaton.updateAllCells();
-                    automaton.displayGrid(window, CELL_SIZE);
-                    std::cout << "Current % of walls: " << automaton.currentGrid().getCurrentWallPercentage() << "\n";
-                }
-                else if (event.mouseButton.button == Mouse::Right)
-                {
-                    automaton = Automaton(GRID_ROWS, GRID_COLS, INITIAL_ALIVE_CELL_PERCENTAGE);
-                    automaton.displayGrid(window, CELL_SIZE);
-                }
-                break;
             }
         }
+
+        automaton.checkAllNeighbours();
+        automaton.updateAllCells();
+        automaton.moveEntities();
+
+        // Draw the automaton to the window
+        automaton.displayGrid(window, CELL_SIZE);  // Assume cell size is 20 pixels
     }
 
     return 0;
