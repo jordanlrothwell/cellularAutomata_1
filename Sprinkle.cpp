@@ -1,15 +1,15 @@
-#include "Entity.h"
+#include "Sprinkle.h"
 #include <random>
 
-Entity::Entity() {
+Sprinkle::Sprinkle() {
     randomizeColor();
 }
 
-sf::Color Entity::getColor() const {
+sf::Color Sprinkle::getColor() const {
     return sf::Color(red, green, blue);
 }
 
-void Entity::randomizeColor() {
+void Sprinkle::randomizeColor() {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<int> dis(0, 255);

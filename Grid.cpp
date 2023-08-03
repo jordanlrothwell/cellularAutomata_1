@@ -47,29 +47,3 @@ Cell& Grid::getCell(int x, int y)
 {
 	return *(grid[x][y]);
 }
-
-/*
-	@return float
-
-	Loop through all cells and count number of walls.
-	Return fraction of walls over total cells as a float.
-*/
-
-float Grid::getCurrentWallPercentage()
-{
-	int totalCells = (this->rows * this->cols);
-	int wallCount = 0;
-
-	for (int i = 0; i < this->rows; i++)
-	{
-		for (int j = 0; j < this->cols; j++)
-		{
-			if (getCell(i, j).isWall())
-			{
-				wallCount++;
-			}
-		}
-	}
-
-	return static_cast<float> (wallCount) / totalCells;
-}

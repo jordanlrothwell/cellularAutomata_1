@@ -2,52 +2,52 @@
 
 Cell::Cell(bool initialStateParam)
 {
-	this->currentState = initialStateParam;
-	this->nextState = false;
-	this->entity = nullptr;
+	this->isWall = initialStateParam;
+	this->willBeWall = false;
+	this->sprinkle = nullptr;
 }
 
 Cell::~Cell() {
-	delete entity;
+	delete sprinkle;
 }
 
-const bool Cell::isWall()
+const bool Cell::getIsWall()
 {
-	return this->currentState;
+	return this->isWall;
 }
 
-const bool Cell::getNextState()
+const bool Cell::getWillBeWall()
 {
-	return this->nextState;
+	return this->willBeWall;
 }
 
-void Cell::setNextState(int stateParam)
+void Cell::setFutureState(bool inputBool)
 {
-	this->nextState = stateParam;
+	this->willBeWall = inputBool;
 }
 
-void Cell::updateState()
+void Cell::updateCurrentState()
 {
-	this->currentState = nextState;
+	this->isWall = this->willBeWall;
 }
 
-bool Cell::hasEntity() const
+bool Cell::hasSprinkle() const
 {
-	return this->entity != nullptr;
+	return this->sprinkle != nullptr;
 }
 
-Entity* Cell::getEntity() const
+Sprinkle* Cell::getSprinkle() const
 {
-	return this->entity;
+	return this->sprinkle;
 }
 
-void Cell::setEntity(Entity* newEntity)
+void Cell::setSprinkle(Sprinkle* newSprinkle)
 {
-	this->entity = newEntity;
+	this->sprinkle = newSprinkle;
 }
 
-Entity* Cell::removeEntity() {
-	Entity* e = entity;
-	entity = nullptr;
+Sprinkle* Cell::removeSprinkle() {
+	Sprinkle* e = sprinkle;
+	sprinkle = nullptr;
 	return e;
 }

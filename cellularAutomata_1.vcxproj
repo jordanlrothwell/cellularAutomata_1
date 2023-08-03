@@ -145,16 +145,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Automaton.cpp" />
+    <ClCompile Include="Simulation.cpp" />
     <ClCompile Include="Cell.cpp" />
-    <ClCompile Include="Entity.cpp" />
+    <ClCompile Include="Sprinkle.cpp" />
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Automaton.h" />
+    <ClInclude Include="Simulation.h" />
     <ClInclude Include="Cell.h" />
-    <ClInclude Include="Entity.h" />
+    <ClInclude Include="Sprinkle.h" />
     <ClInclude Include="Grid.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

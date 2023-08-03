@@ -5,14 +5,14 @@
 
 using namespace sf;
 
-class Automaton
+class Simulation
 {
 private:
-	Grid gridInstance;
+	Grid grid;
 
 public:
 	// Constructor
-	Automaton(int rows, int cols, float initialAliveCellPercentage);
+	Simulation(int rows, int cols, float initialAliveCellPercentage);
 
 	// Return grid instance
 	Grid& currentGrid();
@@ -30,7 +30,7 @@ public:
 	void updateAllCells();
 
 	// Scatter entities randomly across the grid
-	void scatterEntities(int entityCount);
+	void scatterEntities(int SprinkleCount);
 
 	// Move entities
 	void moveEntities();

@@ -1,9 +1,9 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 
-class Entity {
+class Sprinkle {
 public:
-    Entity();
+    Sprinkle();
 
     sf::Color getColor() const;
 

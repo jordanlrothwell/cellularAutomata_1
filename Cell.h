@@ -1,34 +1,32 @@
 #pragma once
-#include "Entity.h"
+#include "Sprinkle.h"
 class Cell
 {
 
 private:
-	bool currentState;
-	bool nextState;
-	Entity* entity;
-
+	bool isWall;
+	bool willBeWall;
+	Sprinkle* sprinkle;
 
 public:
 	Cell(bool initialStateParam);
 
 	~Cell();
 
-	const bool isWall();
+	const bool getIsWall();
 
-	const bool getNextState();
+	const bool getWillBeWall();
 
-	void setNextState(int stateParam);
+	void setFutureState(bool inputBool);
 
-	void updateState();
+	void updateCurrentState();
 
-	bool hasEntity() const;
+	bool hasSprinkle() const;
 
-	Entity* getEntity() const;
+	Sprinkle* getSprinkle() const;
 
-	void setEntity(Entity* newEntity);
+	void setSprinkle(Sprinkle* newSprinkle);
 
-	// Remove entity (without deleting it)
-	Entity* removeEntity();
+	Sprinkle* removeSprinkle();
 };
 
