@@ -4,14 +4,15 @@ class Cell
 {
 
 private:
-	bool isWall;
-	bool willBeWall;
+	bool hasWall;
+	bool willHaveWall;
+
 	std::unique_ptr<Sprinkle> sprinkle;
 
 public:
 	Cell(bool initialStateParam);
 
-	const bool getIsWall();
+	const bool isWall();
 
 	const bool getWillBeWall();
 

@@ -2,29 +2,29 @@
 
 Cell::Cell(bool initialStateParam)
 {
-	this->isWall = initialStateParam;
-	this->willBeWall = false;
+	this->hasWall = initialStateParam;
+	this->willHaveWall = false;
 	this->sprinkle = nullptr;
 }
 
-const bool Cell::getIsWall()
+const bool Cell::isWall()
 {
-	return this->isWall;
+	return this->hasWall;
 }
 
 const bool Cell::getWillBeWall()
 {
-	return this->willBeWall;
+	return this->willHaveWall;
 }
 
 void Cell::setFutureState(bool inputBool)
 {
-	this->willBeWall = inputBool;
+	this->willHaveWall = inputBool;
 }
 
 void Cell::updateCurrentState()
 {
-	this->isWall = this->willBeWall;
+	this->hasWall = this->willHaveWall;
 }
 
 bool Cell::hasSprinkle() const

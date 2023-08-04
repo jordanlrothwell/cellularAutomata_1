@@ -1,7 +1,15 @@
 #include "Simulation.h"
 
-Simulation::Simulation(int rows, int cols, float initialAliveCellPercentage)
-	: grid(Grid(rows, cols, initialAliveCellPercentage)) {}
+const float BIRTH_RATE = 1.2f;  // Expected number of children over entire fertility period
+const int FERTILE_AGE = 200;  // Age at which a sprinkle starts to be fertile
+const int DEATH_AGE = 1000;  // Age at which a sprinkle dies
+
+Simulation::Simulation(int rows, int cols, float initialAliveCellPercentage, int windowWidth)
+	: grid(Grid(rows, cols, initialAliveCellPercentage)) {
+	if (!font.loadFromFile("font.ttf")) {
+	std::cout << "Missing font file!";
+	}
+}
 
 Grid& Simulation::currentGrid()
 {
@@ -20,7 +28,7 @@ void Simulation::checkCellNeighbours(int x, int y)
 			int neighbourY = y + dy;
 
 			if (grid.isWithinBoundary(neighbourX, neighbourY)) {
-				if (grid.getCell(neighbourX, neighbourY).getIsWall()) {
+				if (grid.getCell(neighbourX, neighbourY).isWall()) {
 					wallCount++;
 				}
 			}
@@ -73,7 +81,7 @@ void Simulation::scatterSprinkles(int SprinkleCount) {
 			randCol = disCol(gen);
 		} while (grid.getCell(randRow, randCol).hasSprinkle());
 
-		std::unique_ptr<Sprinkle> newSprinkle = std::make_unique<Sprinkle>(randRow, randCol);
+		std::unique_ptr<Sprinkle> newSprinkle = std::make_unique<Sprinkle>(randRow, randCol, 10);
 		grid.getCell(randRow, randCol).setSprinkle(std::move(newSprinkle));
 	}
 }
@@ -94,7 +102,7 @@ void Simulation::displayGrid(RenderWindow& window, int cellSize) {
 			pixels[index + 3].position = Vector2f(x, y + cellSize);
 
 			Cell& cell = grid.getCell(i, j);
-			if (cell.getIsWall()) {
+			if (cell.isWall()) {
 				pixels[index + 0].color = Color::Black;
 				pixels[index + 1].color = Color::Black;
 				pixels[index + 2].color = Color::Black;
@@ -161,6 +169,19 @@ void Simulation::moveSprinkles() {
 	}
 }
 
+void Simulation::chooseSprinkleDestinations() {
+	for (int i = 0; i < grid.getRows(); i++) {
+		for (int j = 0; j < grid.getCols(); j++) {
+			Cell& cell = grid.getCell(i, j);
+			if (cell.hasSprinkle()) {
+				Sprinkle* sprinkle = cell.getSprinkle();
+				std::pair<int, int> destination = this->chooseDestination(*sprinkle);
+				sprinkle->setCurrentDestination(destination);
+			}
+		}
+	}
+}
+
 Cell& Simulation::getSprinkleCell(Sprinkle& sprinkle) {
 	std::pair<int, int> position = sprinkle.getPosition();
 	int x = position.first;
@@ -180,7 +201,7 @@ void Simulation::pruneMatureSprinkles() {
 			if (cell.hasSprinkle()) {
 				Sprinkle* sprinkle = cell.getSprinkle();
 
-				if (sprinkle->getAge() > 100)
+				if (sprinkle->getAge() > DEATH_AGE)
 				{
 					killSprinkle(*sprinkle);
 				}
@@ -189,34 +210,164 @@ void Simulation::pruneMatureSprinkles() {
 	}
 }
 
+
 void Simulation::reproduceSprinkles() {
+	float fertility_period = DEATH_AGE - FERTILE_AGE;
+	float yearly_reproduction_chance = BIRTH_RATE / fertility_period;
+
 	for (int i = 0; i < grid.getRows(); i++) {
 		for (int j = 0; j < grid.getCols(); j++) {
 			Cell& cell = grid.getCell(i, j);
 			if (cell.hasSprinkle()) {
 				Sprinkle* sprinkle = cell.getSprinkle();
-				if (sprinkle->getAge() > 50 && sprinkle->getAge() < 100) {
+				if (sprinkle->getAge() > FERTILE_AGE && sprinkle->getAge() < DEATH_AGE) {
 					std::random_device rd;
 					std::mt19937 gen(rd());
-					std::uniform_int_distribution<int> dis(1, 20);
+					std::uniform_real_distribution<float> dis(0.0f, 1.0f);
 
-					if (dis(gen) == 20) {
-						// Try to create a new sprinkle in an adjacent cell
+					if (dis(gen) < yearly_reproduction_chance) {
+						std::vector<std::pair<int, int>> potentialLocations;
+
+						// Collect potential offspring locations
 						for (int dx = -1; dx <= 1; dx++) {
 							for (int dy = -1; dy <= 1; dy++) {
 								if (grid.isWithinBoundary(i + dx, j + dy)) {
 									Cell& newCell = grid.getCell(i + dx, j + dy);
-									if (!newCell.getIsWall() && !newCell.hasSprinkle()) {
-										sf::Color parentColor = sprinkle->getColor();
-										newCell.setSprinkle(std::make_unique<Sprinkle>(i + dx, j + dy, parentColor.r, parentColor.g, parentColor.b));
-										return;
+									if (!newCell.isWall() && !newCell.hasSprinkle()) {
+										potentialLocations.push_back(std::make_pair(i + dx, j + dy));
 									}
 								}
 							}
+						}
+
+						// Choose a random location for the offspring
+						if (!potentialLocations.empty()) {
+							std::uniform_int_distribution<int> dis_loc(0, potentialLocations.size() - 1);
+							std::pair<int, int> location = potentialLocations[dis_loc(gen)];
+							int x = location.first;
+							int y = location.second;
+
+							Cell& offspringCell = grid.getCell(x, y);
+							sf::Color parentColor = sprinkle->getColor();
+							std::unique_ptr<Sprinkle> newSprinkle = std::make_unique<Sprinkle>(x, y, parentColor.r, parentColor.g, parentColor.b, 10);
+							offspringCell.setSprinkle(std::move(newSprinkle));
+
 						}
 					}
 				}
 			}
 		}
+	}
+}
+
+std::queue<std::pair<int, int>> Simulation::getCoordinatesInSightRange(Sprinkle& sprinkle) {
+	std::queue<std::pair<int, int>> coordinatesInSightRange; // queue to store coords in range
+	std::set<std::pair<int, int>> blockedCoordinates; // set to store occupied coords (more efficient lookup)
+
+	for (int cellsAway = 1; cellsAway <= sprinkle.getSightRange(); cellsAway++) {
+		for (int dx = -cellsAway; dx < cellsAway; dx++) {
+			for (int dy = -cellsAway; dy < cellsAway; dy++) {
+
+				int x = sprinkle.getPosition().first;
+				int y = sprinkle.getPosition().second;
+
+				if (!grid.isWithinBoundary(x, y) || blockedCoordinates.find({ x, y }) != blockedCoordinates.end()) { // skip coords if outside boundary or already blocked
+					break;
+				}
+
+				Cell& cellAtCoords = grid.getCell(x, y);
+
+				if (cellAtCoords.isWall() || cellAtCoords.hasSprinkle()) { // if the potential cell is occupied
+
+					blockedCoordinates.insert({ x, y }); // add its coordinates to the set
+
+					std::pair<int, int> furthestPointOnTheLine = getFurthestPointOnTheLine(sprinkle.getPosition(), { x, y }, sprinkle.getSightRange()); // get the furthest point (which the sprinkle can see) on the line passing through its current position and the one it just found (which was occupied)
+
+					// assigns for bresenham's line algorithm
+					int x0 = furthestPointOnTheLine.first;
+					int y0 = furthestPointOnTheLine.second;
+					int dx = abs(x - x0);
+					int dy = abs(y - y0);
+					int sx = (x0 < x) ? 1 : -1;
+					int sy = (y0 < y) ? 1 : -1;
+					int err = dx - dy;
+
+					while (x0 != x || y0 != y) {
+						blockedCoordinates.insert({ x0, y0 }); // add its coordinates to the set
+						int e2 = 2 * err;
+						if (e2 > -dy) {
+							err -= dy;
+							x0 += sx;
+						}
+						if (e2 < dx) {
+							err += dx;
+							y0 += sy;
+						}
+					}
+				}
+				else {
+					coordinatesInSightRange.push({ x, y }); // if not occupied or blocked, add to queue
+				}
+			}
+		}
+	}
+
+	return coordinatesInSightRange;
+}
+
+std::pair<int, int> Simulation::getFurthestPointOnTheLine(std::pair<int, int> origin, std::pair<int, int> pointOnTheLine, int distance)
+{
+	// direction vectors
+	int dx = pointOnTheLine.first - origin.first; // = x2 - x1
+	int dy = pointOnTheLine.second - origin.second; // = y2 - y1
+	
+	double length = std::sqrt(dx * dx + dy * dy); // length of the direction vector
+	
+	// normalise direction vector to get unit vector
+	int scale = 10000; // multiply by a large scale factor to preserve precision
+	int unit_dx = static_cast<int>(dx / length * scale);
+	int unit_dy = static_cast<int>(dy / length * scale);
+
+	// scale the unit vector by the distance
+	// divide by the scale factor to get back to the original scale
+	int displacement_dx = unit_dx * distance / scale;
+	int displacement_dy = unit_dy * distance / scale;
+
+	// calculate the new end point
+	int new_x = pointOnTheLine.first + displacement_dx;
+	int new_y = pointOnTheLine.second + displacement_dy;
+
+	return { new_x, new_y };
+}
+
+std::pair<int, int> Simulation::chooseDestination(Sprinkle& sprinkle) {
+
+	if (!sprinkle.isTravelling()) { // keep current destination if sprinkle is already travelling
+
+		sprinkle.setTravelling(true); // put sprinkle into travelling state
+
+		std::queue<std::pair<int, int>> coordinatesInSightRange = getCoordinatesInSightRange(sprinkle);
+		std::vector<std::pair<int, int>> allCoordinates;
+
+		while (!coordinatesInSightRange.empty()) {
+			std::pair<int, int> currentlyEvaluating = coordinatesInSightRange.front();
+			coordinatesInSightRange.pop();
+
+			allCoordinates.push_back(currentlyEvaluating);
+		}
+
+		// Pick a random coordinate
+		if (!allCoordinates.empty()) {
+			std::random_device rd;
+			std::mt19937 gen(rd());
+			std::uniform_int_distribution<> distrib(0, allCoordinates.size() - 1);
+
+			int randomIndex = distrib(gen);
+			return allCoordinates[randomIndex];
+		}
+
+
+		
+		return sprinkle.getPosition(); // if no valid coordinate was found, return the sprinkle's current position as a fallback
 	}
 }

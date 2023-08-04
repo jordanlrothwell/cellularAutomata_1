@@ -50,7 +50,7 @@ Cell& Grid::getCell(int x, int y) const
 
 bool Grid::isValidMove(int x, int y) const {
 	if (0 <= x && x < this->cols && 0 <= y && y < this->rows) {
-		if (!getCell(x, y).getIsWall()) {
+		if (!getCell(x, y).isWall()) {
 			return true;
 		}
 	}
