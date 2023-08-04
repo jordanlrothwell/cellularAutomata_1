@@ -6,26 +6,23 @@
 #include "Cell.h"
 
 class Grid {
-
 private:
-	int rows;
-	int cols;
-	std::vector<std::vector<std::unique_ptr<Cell>>> grid;
+    int rows;
+    int cols;
+    std::vector<std::vector<std::unique_ptr<Cell>>> grid;
 
 public:
-	// Constructor
-	Grid(int rowsParam, int colsParam, float initialAliveCellPercentage);
+    Grid(int rowsParam, int colsParam, float initialAliveCellPercentage);
 
-	bool generateRandomBool(float distributionParam);
+    bool generateRandomBool(float distributionParam);
 
-	int getRows();
+    int getRows();
 
-	int getCols();
+    int getCols();
 
-	bool isWithinBoundary(int x, int y);
+    bool isWithinBoundary(int x, int y);
 
-	Cell& getCell(int x, int y);
+    Cell& getCell(int x, int y) const;
 
-	float getCurrentWallPercentage();
+    bool isValidMove(int x, int y) const;
 };
-

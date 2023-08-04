@@ -25,7 +25,7 @@ void Simulation::checkCellNeighbours(int x, int y)
 				}
 			}
 			else {
-				wallCount++; // Count boundary cells as walls
+				wallCount++;
 			}
 		}
 	}
@@ -60,7 +60,7 @@ void Simulation::updateAllCells()
 	}
 }
 
-void Simulation::scatterEntities(int SprinkleCount) {
+void Simulation::scatterSprinkles(int SprinkleCount) {
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<int> disRow(0, grid.getRows() - 1);
@@ -68,46 +68,15 @@ void Simulation::scatterEntities(int SprinkleCount) {
 
 	for (int i = 0; i < SprinkleCount; ++i) {
 		int randRow, randCol;
-
-		// Keep generating random coordinates until an empty cell is found
 		do {
 			randRow = disRow(gen);
 			randCol = disCol(gen);
 		} while (grid.getCell(randRow, randCol).hasSprinkle());
 
-		// Set Sprinkle
-		Sprinkle* newSprinkle = new Sprinkle();
-		grid.getCell(randRow, randCol).setSprinkle(newSprinkle);
+		std::unique_ptr<Sprinkle> newSprinkle = std::make_unique<Sprinkle>(randRow, randCol);
+		grid.getCell(randRow, randCol).setSprinkle(std::move(newSprinkle));
 	}
 }
-
-void Simulation::moveEntities() {
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int> dis(-1, 1);  // For generating random moves
-
-	for (int i = 0; i < grid.getRows(); i++) {
-		for (int j = 0; j < grid.getCols(); j++) {
-			Cell& cell = grid.getCell(i, j);
-			if (cell.hasSprinkle()) {
-				int moveX = dis(gen);
-				int moveY = dis(gen);
-				int destX = i + moveX;
-				int destY = j + moveY;
-
-				// Check boundaries and if destination cell already has an Sprinkle or is a wall
-				if (grid.isWithinBoundary(destX, destY) &&
-					!grid.getCell(destX, destY).hasSprinkle() &&
-					!grid.getCell(destX, destY).getIsWall()) {
-					// Move Sprinkle
-					Sprinkle* Sprinkle = cell.removeSprinkle(); // This should nullify the cell's Sprinkle pointer
-					grid.getCell(destX, destY).setSprinkle(Sprinkle);
-				}
-			}
-		}
-	}
-}
-
 
 
 void Simulation::displayGrid(RenderWindow& window, int cellSize) {
@@ -152,4 +121,30 @@ void Simulation::displayGrid(RenderWindow& window, int cellSize) {
 	window.clear(sf::Color::White);
 	window.draw(pixels);
 	window.display();
+}
+
+void Simulation::moveSprinkles() {
+	for (int i = 0; i < grid.getRows(); i++) {
+		for (int j = 0; j < grid.getCols(); j++) {
+			Cell& cell = grid.getCell(i, j);
+			if (cell.hasSprinkle()) {
+				std::unique_ptr<Sprinkle> sprinkle = cell.removeSprinkle();
+				sprinkle->move();
+				int newX = sprinkle->getPosition().first;
+				int newY = sprinkle->getPosition().second;
+				if (grid.isValidMove(newX, newY)) {
+					Cell& newCell = grid.getCell(newX, newY);
+					if (!newCell.hasSprinkle()) {
+						newCell.setSprinkle(std::move(sprinkle));
+					}
+					else {
+						cell.setSprinkle(std::move(sprinkle));
+					}
+				}
+				else {
+					cell.setSprinkle(std::move(sprinkle));
+				}
+			}
+		}
+	}
 }

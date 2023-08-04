@@ -7,10 +7,6 @@ Cell::Cell(bool initialStateParam)
 	this->sprinkle = nullptr;
 }
 
-Cell::~Cell() {
-	delete sprinkle;
-}
-
 const bool Cell::getIsWall()
 {
 	return this->isWall;
@@ -36,18 +32,14 @@ bool Cell::hasSprinkle() const
 	return this->sprinkle != nullptr;
 }
 
-Sprinkle* Cell::getSprinkle() const
-{
-	return this->sprinkle;
+Sprinkle* Cell::getSprinkle() const {
+	return sprinkle.get();
 }
 
-void Cell::setSprinkle(Sprinkle* newSprinkle)
-{
-	this->sprinkle = newSprinkle;
+void Cell::setSprinkle(std::unique_ptr<Sprinkle> sprinkle) {
+	this->sprinkle = std::move(sprinkle);
 }
 
-Sprinkle* Cell::removeSprinkle() {
-	Sprinkle* e = sprinkle;
-	sprinkle = nullptr;
-	return e;
+std::unique_ptr<Sprinkle> Cell::removeSprinkle() {
+	return std::move(sprinkle);
 }

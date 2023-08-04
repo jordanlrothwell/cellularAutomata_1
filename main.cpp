@@ -32,13 +32,9 @@ int main()
 
     for (int i = 0; i < NUMBER_OF_ITERATIONS; i++)
     {
-        {
             Simulation.checkAllNeighbours();
             Simulation.updateAllCells();
-        }
     }
-
-    Simulation.scatterEntities(2000);
 
     Simulation.displayGrid(window, CELL_SIZE);
 
@@ -54,13 +50,8 @@ int main()
                 break;
             }
         }
-
-        Simulation.checkAllNeighbours();
-        Simulation.updateAllCells();
-        Simulation.moveEntities();
-
         // Draw the Simulation to the window
-        Simulation.displayGrid(window, CELL_SIZE);  // Assume cell size is 20 pixels
+
     }
 
     return 0;
