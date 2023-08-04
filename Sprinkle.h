@@ -5,16 +5,24 @@ class Sprinkle {
 public:
     Sprinkle(int x, int y);
 
+    Sprinkle(int x, int y, int red, int green, int blue);
+
     sf::Color getColor() const;
 
     std::pair<int, int> getPosition() const;
     void setPosition(int x, int y);
 
-    void move();
+    std::pair<int, int> move();
+    
+    void increaseAge();
+
+    int getAge() const;
 
 private:
     void randomizeColor();
 
-    int x, y;  // Position of the Sprinkle
-    int red, green, blue;  // Color of the Sprinkle
+    int x, y;
+    int red, green, blue;
+
+    int age;
 };

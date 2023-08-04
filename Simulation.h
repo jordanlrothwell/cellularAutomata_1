@@ -31,9 +31,19 @@ public:
     // Scatter entities randomly across the grid
     void scatterSprinkles(int SprinkleCount);
 
-    // Move entities
+    void moveSprinkleIfValid(Sprinkle& sprinkle, int newX, int newY);
+
+    // Move sprinkles
     void moveSprinkles();
 
     // Display grid
     void displayGrid(RenderWindow& window, int cellSize);
+
+    Cell& getSprinkleCell(Sprinkle& sprinkle);
+
+    void killSprinkle(Sprinkle& sprinkle);
+
+    void pruneMatureSprinkles();
+
+    void reproduceSprinkles();
 };

@@ -123,26 +123,98 @@ void Simulation::displayGrid(RenderWindow& window, int cellSize) {
 	window.display();
 }
 
+void Simulation::moveSprinkleIfValid(Sprinkle& sprinkle, int newX, int newY) {
+	int oldX = sprinkle.getPosition().first;
+	int oldY = sprinkle.getPosition().second;
+
+	newX = std::max(0, std::min(grid.getRows() - 1, newX));
+	newY = std::max(0, std::min(grid.getCols() - 1, newY));
+
+	if (grid.isValidMove(newX, newY) && !grid.getCell(newX, newY).hasSprinkle()) {
+		Cell& oldCell = grid.getCell(oldX, oldY);
+		Cell& newCell = grid.getCell(newX, newY);
+
+		std::unique_ptr<Sprinkle> sprinklePtr = oldCell.removeSprinkle();
+		newCell.setSprinkle(std::move(sprinklePtr));
+
+		sprinkle.setPosition(newX, newY);
+	}
+}
+
+
 void Simulation::moveSprinkles() {
 	for (int i = 0; i < grid.getRows(); i++) {
 		for (int j = 0; j < grid.getCols(); j++) {
 			Cell& cell = grid.getCell(i, j);
 			if (cell.hasSprinkle()) {
-				std::unique_ptr<Sprinkle> sprinkle = cell.removeSprinkle();
-				sprinkle->move();
-				int newX = sprinkle->getPosition().first;
-				int newY = sprinkle->getPosition().second;
-				if (grid.isValidMove(newX, newY)) {
-					Cell& newCell = grid.getCell(newX, newY);
-					if (!newCell.hasSprinkle()) {
-						newCell.setSprinkle(std::move(sprinkle));
-					}
-					else {
-						cell.setSprinkle(std::move(sprinkle));
-					}
+				Sprinkle* sprinkle = cell.getSprinkle();
+
+				sprinkle->increaseAge();
+
+				std::pair<int, int> newPosition = sprinkle->move();
+				int newX = newPosition.first;
+				int newY = newPosition.second;
+
+				moveSprinkleIfValid(*sprinkle, newX, newY);
+			}
+		}
+	}
+}
+
+Cell& Simulation::getSprinkleCell(Sprinkle& sprinkle) {
+	std::pair<int, int> position = sprinkle.getPosition();
+	int x = position.first;
+	int y = position.second;
+	return grid.getCell(x, y);
+}
+
+void Simulation::killSprinkle(Sprinkle& sprinkle) {
+	Cell& cell = getSprinkleCell(sprinkle);
+	cell.removeSprinkle();
+}
+
+void Simulation::pruneMatureSprinkles() {
+	for (int i = 0; i < grid.getRows(); i++) {
+		for (int j = 0; j < grid.getCols(); j++) {
+			Cell& cell = grid.getCell(i, j);
+			if (cell.hasSprinkle()) {
+				Sprinkle* sprinkle = cell.getSprinkle();
+
+				if (sprinkle->getAge() > 100)
+				{
+					killSprinkle(*sprinkle);
 				}
-				else {
-					cell.setSprinkle(std::move(sprinkle));
+			}
+		}
+	}
+}
+
+void Simulation::reproduceSprinkles() {
+	for (int i = 0; i < grid.getRows(); i++) {
+		for (int j = 0; j < grid.getCols(); j++) {
+			Cell& cell = grid.getCell(i, j);
+			if (cell.hasSprinkle()) {
+				Sprinkle* sprinkle = cell.getSprinkle();
+				if (sprinkle->getAge() > 50 && sprinkle->getAge() < 100) {
+					std::random_device rd;
+					std::mt19937 gen(rd());
+					std::uniform_int_distribution<int> dis(1, 20);
+
+					if (dis(gen) == 20) {
+						// Try to create a new sprinkle in an adjacent cell
+						for (int dx = -1; dx <= 1; dx++) {
+							for (int dy = -1; dy <= 1; dy++) {
+								if (grid.isWithinBoundary(i + dx, j + dy)) {
+									Cell& newCell = grid.getCell(i + dx, j + dy);
+									if (!newCell.getIsWall() && !newCell.hasSprinkle()) {
+										sf::Color parentColor = sprinkle->getColor();
+										newCell.setSprinkle(std::make_unique<Sprinkle>(i + dx, j + dy, parentColor.r, parentColor.g, parentColor.b));
+										return;
+									}
+								}
+							}
+						}
+					}
 				}
 			}
 		}
