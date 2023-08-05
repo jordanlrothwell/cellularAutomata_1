@@ -1,45 +1,45 @@
 #include "Cell.h"
 
-Cell::Cell(bool initialStateParam)
+// Constructor
+Cell::Cell(bool initial_wall_state) : wall_present(initial_wall_state), future_wall_state(false) {} 
+
+// Getter methods
+bool Cell::hasWall() const
 {
-	this->hasWall = initialStateParam;
-	this->willHaveWall = false;
-	this->sprinkle = nullptr;
+	return this->wall_present;
 }
 
-const bool Cell::isWall()
+bool Cell::willBeWall() const
 {
-	return this->hasWall;
+	return this->future_wall_state;
 }
 
-const bool Cell::getWillBeWall()
+void Cell::setFutureWallState(bool future_state)
 {
-	return this->willHaveWall;
+	this->future_wall_state = future_state;
 }
 
-void Cell::setFutureState(bool inputBool)
+void Cell::updateCurrentWallState()
 {
-	this->willHaveWall = inputBool;
-}
-
-void Cell::updateCurrentState()
-{
-	this->hasWall = this->willHaveWall;
+	this->wall_present = this->future_wall_state;
 }
 
 bool Cell::hasSprinkle() const
 {
-	return this->sprinkle != nullptr;
+	return this->sprinkle_ptr != nullptr;	// sprinkle_ptr is a unique pointer, so comparing with nullptr is enough to check existence
 }
 
-Sprinkle* Cell::getSprinkle() const {
-	return sprinkle.get();
+// Get the sprinkle object from this cell
+Sprinkle* Cell::getSprinkle() {
+	return sprinkle_ptr.get(); 	// Return raw pointer to the sprinkle object, ownership remains with the unique_ptr
 }
 
-void Cell::setSprinkle(std::unique_ptr<Sprinkle> sprinkle) {
-	this->sprinkle = std::move(sprinkle);
+// Place a new sprinkle in this cell
+void Cell::placeSprinkle(std::unique_ptr<Sprinkle> new_sprinkle) {
+	this->sprinkle_ptr = std::move(new_sprinkle); 	// Take ownership of the sprinkle pointer passed into the function
 }
 
+// Remove the sprinkle from this cell
 std::unique_ptr<Sprinkle> Cell::removeSprinkle() {
-	return std::move(sprinkle);
+	return std::move(sprinkle_ptr); // Transfer ownership of sprinkle pointer to caller
 }

@@ -1,28 +1,25 @@
-#pragma once
-#include <iostream>
-#include <vector>
-#include <random>
-#include <memory>
+#pragma once    
+#include <vector> 
 #include "Cell.h"
 
 class Grid {
 private:
-    int rows;
-    int cols;
+    // Data members
+    int row_count;
+    int col_count;
     std::vector<std::vector<std::unique_ptr<Cell>>> grid;
 
 public:
-    Grid(int rowsParam, int colsParam, float initialAliveCellPercentage);
+    // Constructors
+    Grid(int row_count, int col_count, float initial_wall_chance);
 
-    bool generateRandomBool(float distributionParam);
+    // Getter methods
+    int getWidth() const;
+    int getHeight() const;
 
-    int getRows();
+    // Utility methods
+    bool isWithinBounds(int x, int y) const;
 
-    int getCols();
-
-    bool isWithinBoundary(int x, int y);
-
-    Cell& getCell(int x, int y) const;
-
-    bool isValidMove(int x, int y) const;
+    // Cell access method
+    Cell* getCellAtCoords(int x, int y);
 };

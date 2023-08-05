@@ -3,50 +3,35 @@
 #include <queue>
 #include <set>
 #include <random>
-
-#include "grid.h"
+#include "Utils.h"
 
 class Sprinkle {
 private:
-    void randomizeColor();
-
-    // Current position
-    int x, y;
-
-    // RGB colour
-    int red, green, blue;
-
-    // Age
+    // Data members
+    Coords current_position;
+    ColourValue colour;
     int age;
-
-    // How many cells away the Sprinkle can see
-    int sightRange;
-
-    std::pair<int, int> currentDestination;
-
-    bool travelling;
+    int sight_range;
+    OptionalCoords current_destination;
 
 public:
-    Sprinkle(int x, int y, int sightDistance);
+    // Constructors
+    Sprinkle(int x, int y, int sight_range);
+    Sprinkle(int x, int y, ColourValue colour, int sight_range);
 
-    Sprinkle(int x, int y, int red, int green, int blue, int sightDistance);
-
-    sf::Color getColor() const;
-
-    std::pair<int, int> getPosition() const;
-    void setPosition(int x, int y);
-
-    void setCurrentDestination(std::pair<int, int> destination);
-
-    std::pair<int, int> move();
-    
-    void increaseAge();
-
+    // Getter methods
+    ColourValue getColour() const;
+    Coords getPosition() const;
+    OptionalCoords getCurrentDestination() const;
     int getAge() const;
-    
     int getSightRange() const;
-
     bool isTravelling() const;
 
-    void setTravelling(bool travelParam);
+    // Setter methods
+    void setPosition(int x, int y);
+    void setDestination(OptionalCoords destination);
+
+    // Sprinkle actions
+    OptionalCoords move();
+    void increaseAge();
 };

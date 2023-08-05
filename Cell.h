@@ -1,30 +1,32 @@
-#pragma once
-#include "Sprinkle.h"
+#pragma once    
+#include <memory>  
+#include "Sprinkle.h"  
+
 class Cell
 {
-
 private:
-	bool hasWall;
-	bool willHaveWall;
-
-	std::unique_ptr<Sprinkle> sprinkle;
+    // Data members
+    bool wall_present;
+    bool future_wall_state;
+    std::unique_ptr<Sprinkle> sprinkle_ptr;
 
 public:
-	Cell(bool initialStateParam);
+    // Constructor
+    explicit Cell(bool initial_wall_state);
 
-	const bool isWall();
+    // Getter methods
+    bool hasWall() const;
+    bool willBeWall() const;
+    bool hasSprinkle() const;
+    Sprinkle* getSprinkle();
 
-	const bool getWillBeWall();
+    // Setter methods
+    void setFutureWallState(bool future_state);
+    void placeSprinkle(std::unique_ptr<Sprinkle> new_sprinkle);
 
-	void setFutureState(bool inputBool);
-	void updateCurrentState();
+    // Update method
+    void updateCurrentWallState();
 
-	bool hasSprinkle() const;
-	Sprinkle* getSprinkle() const;
-	void setSprinkle(std::unique_ptr<Sprinkle> sprinkle);
-
-	// This function removes the sprinkle from the cell and returns it wrapped in a unique_ptr.
-	// If the returned unique_ptr is not stored anywhere, the sprinkle will be automatically deleted from memory.
-	std::unique_ptr<Sprinkle> removeSprinkle();
+    // Sprinkle management
+    std::unique_ptr<Sprinkle> removeSprinkle();
 };
-

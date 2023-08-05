@@ -4,39 +4,21 @@
 
 using namespace sf;
 
-const float INITIAL_ALIVE_CELL_PERCENTAGE = 0.43f;
+const float INITIAL_WALL_PERCENTAGE = 0.47f;
 const int CELL_SIZE = 10;
-const int GRID_ROWS = 64;
-const int GRID_COLS = 64;
-const int WINDOW_WIDTH = GRID_COLS * CELL_SIZE * 2;
-const int WINDOW_HEIGHT = GRID_ROWS * CELL_SIZE;
-const int SPRINKLE_NUMBER = 200;
-
-
-Simulation* startNewSim(int sprinkles) {
-    Simulation* sim = new Simulation(GRID_ROWS, GRID_COLS, INITIAL_ALIVE_CELL_PERCENTAGE, WINDOW_WIDTH);
-    for (int i = 0; i < 20; i++)
-    {
-        sim->checkAllNeighbours();
-        sim->updateAllCells();
-    }
-
-    sim->scatterSprinkles(sprinkles);
-    return sim;
-}
+const int GRID_ROWS = 128;
+const int GRID_COLS = 128;
+const int SPRINKLE_NUMBER = 1500;
 
 int main()
 {
-    Simulation* sim = startNewSim(SPRINKLE_NUMBER);
+    Simulation sim(GRID_ROWS, GRID_COLS, INITIAL_WALL_PERCENTAGE);
 
-    RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Sprinkles");
+    RenderWindow window(VideoMode(GRID_ROWS * CELL_SIZE, GRID_COLS * CELL_SIZE), "Sprinkles");
     window.setFramerateLimit(15);
 
-    View simulationView(FloatRect(0, 0, GRID_COLS * CELL_SIZE, WINDOW_HEIGHT));
-    simulationView.setViewport(FloatRect(0, 0, 0.5f, 1.0f));
-
-    View statisticsView(FloatRect(0, 0, GRID_COLS * CELL_SIZE, WINDOW_HEIGHT));
-    statisticsView.setViewport(FloatRect(0.5f, 0, 0.5f, 1.0f));
+    // Display the initial state of the grid before entering the main loop.
+    sim.displayGrid(window, CELL_SIZE);
 
     while (window.isOpen())
     {
@@ -54,22 +36,17 @@ int main()
 
             if (event.type == Event::KeyPressed && event.key.code == Keyboard::Space)
             {
-                delete sim; // Delete the old simulation to prevent memory leaks
-                sim = startNewSim(SPRINKLE_NUMBER);
+                sim.prepareAllCells();
+                sim.updateAllCells();
+                sim.displayGrid(window, CELL_SIZE);
+            }
+
+            if (event.type == Event::MouseButtonPressed && event.mouseButton.button == Mouse::Left) {
+                sim.scatterSprinkles(SPRINKLE_NUMBER);
+                sim.displayGrid(window, CELL_SIZE);  // Display the updated state of the grid after scattering sprinkles.
             }
         }
-
-        sim->chooseSprinkleDestinations();
-        sim->moveSprinkles();
-        sim->reproduceSprinkles();
-        sim->pruneMatureSprinkles();
-
-        window.setView(simulationView);
-        sim->displayGrid(window, CELL_SIZE);
     }
-
-    delete sim; // Delete the simulation after the main loop
 
     return 0;
 }
-

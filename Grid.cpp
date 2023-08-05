@@ -1,59 +1,35 @@
 #include "Grid.h"
 
-// Constructor
-Grid::Grid(int rowsParam, int colsParam, float initialAliveCellPercentage)
-	: rows(rowsParam), cols(colsParam) {
-	grid.resize(rows);
-
-	for (int i = 0; i < rows; i++) {
-		grid[i].resize(cols);
-		for (int j = 0; j < cols; j++) {
-			bool initialState = generateRandomBool(initialAliveCellPercentage);
-			grid[i][j] = std::make_unique<Cell>(initialState);
-		}
-	}
+Grid::Grid(int row_count, int col_count, float initial_wall_chance) : row_count(row_count), col_count(col_count) {
+    grid.resize(row_count);
+    for (auto& column : grid) {
+        column.resize(col_count);
+        for (auto& cell : column) {
+            cell = std::make_unique<Cell>(utils::generateRandomWeightedBool(initial_wall_chance));
+        }
+    }
 }
 
-bool Grid::generateRandomBool(float distributionParam)
-{
-	static std::random_device seed;
-	static std::mt19937 randomNumberFromSeed(seed());
-	std::bernoulli_distribution weightedDistributionZeroToOne(distributionParam);
 
-	return weightedDistributionZeroToOne(randomNumberFromSeed);
+int Grid::getWidth() const { // Returns the number of columns in the grid (the grid's width)
+    return this->col_count;
 }
 
-int Grid::getRows()
-{
-	return this->rows;
+int Grid::getHeight() const { // Returns the number of rows in the grid (the grid's height)
+    return this->row_count;
 }
 
-int Grid::getCols()
-{
-	return this->cols;
+
+bool Grid::isWithinBounds(int x, int y) const { // Checks if the provided coordinates fall within the grid's boundaries
+    return x >= 0 && x < col_count && y >= 0 && y < row_count;
 }
 
-bool Grid::isWithinBoundary(int x, int y)
-{
-	if (0 <= x && x < this->cols) {
-		if (0 <= y && y < this->rows) {
-			return true;
-		}
-	}
-	return false;
+// Returns a reference to the cell at the provided coordinates, or a nullopt if the coordinates are out of bounds
+Cell* Grid::getCellAtCoords(int x, int y) {
+    if (isWithinBounds(x, y)) {
+        return grid[x][y].get();
+    }
+    else {
+        return nullptr;
+    }
 }
-
-Cell& Grid::getCell(int x, int y) const
-{
-	return *(grid[x][y]);
-}
-
-bool Grid::isValidMove(int x, int y) const {
-	if (0 <= x && x < this->cols && 0 <= y && y < this->rows) {
-		if (!getCell(x, y).isWall()) {
-			return true;
-		}
-	}
-	return false;
-}
-
