@@ -3,16 +3,20 @@
 #include <queue>
 #include <set>
 #include <random>
+#include <iostream>
 #include "Utils.h"
-
+    
 class Sprinkle {
 private:
     // Data members
-    Coords current_position;
-    ColourValue colour;
     int age;
+    ColourValue colour;
+
     int sight_range;
+
+    Coords current_position;
     OptionalCoords current_destination;
+    bool travelling;
 
 public:
     // Constructors
@@ -29,9 +33,15 @@ public:
 
     // Setter methods
     void setPosition(int x, int y);
+
     void setDestination(OptionalCoords destination);
 
     // Sprinkle actions
-    OptionalCoords move();
     void increaseAge();
+
+    std::queue<Coords> getCoordsInRangeClosestToFurthest() const;
+
+    Coords getNextMove();
+
+    bool reachedDestination();
 };

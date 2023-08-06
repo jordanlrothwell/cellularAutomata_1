@@ -1,7 +1,7 @@
 #include "Cell.h"
 
 // Constructor
-Cell::Cell(bool initial_wall_state) : wall_present(initial_wall_state), future_wall_state(false) {} 
+Cell::Cell(bool initial_wall_state) : wall_present(initial_wall_state), future_wall_state(false), food_present(false) {}
 
 // Getter methods
 bool Cell::hasWall() const
@@ -42,4 +42,19 @@ void Cell::placeSprinkle(std::unique_ptr<Sprinkle> new_sprinkle) {
 // Remove the sprinkle from this cell
 std::unique_ptr<Sprinkle> Cell::removeSprinkle() {
 	return std::move(sprinkle_ptr); // Transfer ownership of sprinkle pointer to caller
+}
+
+
+bool Cell::hasFood() const
+{
+	return this->food_present;
+}
+
+void Cell::placeFood()
+{
+	this->food_present = true;
+}
+
+void Cell::removeFood() {
+	this->food_present = false;
 }

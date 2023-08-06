@@ -3,7 +3,8 @@
 #include <SFML/Graphics.hpp>
 #include <random>
 #include <optional>
-
+#include <queue>
+#include <cmath>
 
 // A struct to hold RGB values
 struct ColourValue {
@@ -16,13 +17,30 @@ struct ColourValue {
 };
 
 struct Coords {
-    int x;
-    int y;
+    int x, y;
+
+    bool operator<(const Coords& other) const {
+        if (x == other.x) {
+            return y < other.y;
+        }
+        return x < other.x;
+    }
+};
+
+struct PriorityCoords {
+    Coords coord;
+    int priority; // Higher value means higher priority
+
+    bool operator<(const PriorityCoords& other) const {
+        return priority < other.priority; // For max-heap behavior in std::priority_queue
+    }
 };
 
 namespace utils {
     bool generateRandomWeightedBool(float trueProbability);
     ColourValue generateRandomColorValue();
+    int generateRandomInRange(int min, int max);
+    std::queue<Coords> bresenhamLine(int x1, int y1, int x2, int y2);
 };
 
 using OptionalCoords = std::optional<Coords>;

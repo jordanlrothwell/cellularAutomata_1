@@ -4,7 +4,7 @@
 #include <vector>
 #include <cmath>
 #include <utility>
-
+#include <optional>
 #include "Grid.h"
 
 using namespace sf;
@@ -12,7 +12,6 @@ using namespace sf;
 class Simulation {
 private:
     Grid grid;
-    Font font;
 
 public:
     // Constructor
@@ -33,6 +32,16 @@ public:
     // Scatter entities randomly across the grid
     void scatterSprinkles(int SprinkleCount);
 
+    void scatterFood(int food_count);
+
     // Display grid
     void displayGrid(RenderWindow& window, int cellSize);
+
+    void determineSprinkleDestination(Sprinkle& sprinkle);
+
+    void setDestinationForAllSprinkles();
+
+    void moveSprinkle(Sprinkle& sprinkle);
+
+    void moveAllSprinkles();
 };

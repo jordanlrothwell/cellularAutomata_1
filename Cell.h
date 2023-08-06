@@ -8,6 +8,7 @@ private:
     // Data members
     bool wall_present;
     bool future_wall_state;
+    bool food_present;
     std::unique_ptr<Sprinkle> sprinkle_ptr;
 
 public:
@@ -29,4 +30,10 @@ public:
 
     // Sprinkle management
     std::unique_ptr<Sprinkle> removeSprinkle();
+
+    bool hasFood() const;
+
+    void placeFood();
+
+    void removeFood();
 };

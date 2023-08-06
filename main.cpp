@@ -4,11 +4,12 @@
 
 using namespace sf;
 
-const float INITIAL_WALL_PERCENTAGE = 0.47f;
-const int CELL_SIZE = 10;
+const float INITIAL_WALL_PERCENTAGE = 0.43f;
+const int CELL_SIZE = 5;
 const int GRID_ROWS = 128;
 const int GRID_COLS = 128;
-const int SPRINKLE_NUMBER = 1500;
+const int SPRINKLE_NUMBER = 1000;
+const int FOOD_AMOUNT = 2000;
 
 int main()
 {
@@ -17,7 +18,13 @@ int main()
     RenderWindow window(VideoMode(GRID_ROWS * CELL_SIZE, GRID_COLS * CELL_SIZE), "Sprinkles");
     window.setFramerateLimit(15);
 
-    // Display the initial state of the grid before entering the main loop.
+    for (int i = 0; i < 20; i++) {
+        sim.prepareAllCells();
+        sim.updateAllCells();
+    }
+
+    sim.scatterSprinkles(SPRINKLE_NUMBER);
+    sim.scatterFood(FOOD_AMOUNT);
     sim.displayGrid(window, CELL_SIZE);
 
     while (window.isOpen())
@@ -36,16 +43,28 @@ int main()
 
             if (event.type == Event::KeyPressed && event.key.code == Keyboard::Space)
             {
-                sim.prepareAllCells();
-                sim.updateAllCells();
+                sim.scatterFood(FOOD_AMOUNT);
                 sim.displayGrid(window, CELL_SIZE);
             }
 
             if (event.type == Event::MouseButtonPressed && event.mouseButton.button == Mouse::Left) {
+
+            }
+
+            if (event.type == Event::MouseButtonPressed && event.mouseButton.button == Mouse::Right) {
+                sim = Simulation(GRID_ROWS, GRID_COLS, INITIAL_WALL_PERCENTAGE);
+                for (int i = 0; i < 20; i++) {
+                    sim.prepareAllCells();
+                    sim.updateAllCells();
+                }
                 sim.scatterSprinkles(SPRINKLE_NUMBER);
-                sim.displayGrid(window, CELL_SIZE);  // Display the updated state of the grid after scattering sprinkles.
+                sim.scatterFood(FOOD_AMOUNT);
+                sim.displayGrid(window, CELL_SIZE);
             }
         }
+        sim.setDestinationForAllSprinkles();
+        sim.moveAllSprinkles();
+        sim.displayGrid(window, CELL_SIZE);
     }
 
     return 0;
